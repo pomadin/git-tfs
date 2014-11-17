@@ -525,7 +525,11 @@ namespace Sep.Git.Tfs.Core
                 tfsPath = tfsPath.EndsWith("/") ? tfsPath : tfsPath + "/";
                 var tfsBranch = Tfs.GetBranches(true).SingleOrDefault(b => tfsPath.StartsWith(b.Path.EndsWith("/") ? b.Path : b.Path + "/"));
 
-                if (mergeChangeset && tfsBranch != null && Repository.GetConfig(GitTfsConstants.IgnoreNotInitBranches) == true.ToString())
+                var branchRegex = Repository.GetConfig(GitTfsConstants.BranchRegex);
+                var branchMatching = !string.IsNullOrEmpty(branchRegex);
+
+                if (mergeChangeset && tfsBranch != null 
+                    && (Repository.GetConfig(GitTfsConstants.IgnoreNotInitBranches) == true.ToString() || (branchMatching && !Regex.Match(tfsBranch.Path, branchRegex, RegexOptions.IgnoreCase).Success)))
                 {
                     stdout.WriteLine("warning: skip not initialized branch for path " + tfsBranch.Path);
                     tfsRemote = null;
